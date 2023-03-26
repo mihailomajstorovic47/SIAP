@@ -10,9 +10,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from yellowbrick.model_selection import FeatureImportances # Correlation finding
+from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import RandomOverSampler
 
 tracks = pd.read_csv('tracks.csv')
 artists = pd.read_csv('artists.csv')
+combined = pd.read_csv('merged-20000.csv')
 
 def find_most_popular_artist(artist_ids):
     max_popularity = 0
@@ -40,19 +43,155 @@ def find_most_popular_artist(artist_ids):
     return max_popularity
 
 def merge_tracks_and_artists():
-    artists_popularity = []     #lista koja ce predstavljati novu kolonu dataseta
+    id = []
+    name = []
+    popularity = []
+    duration_ms = []
+    explicit = []
+    artists = []
+    id_artists = []
+    release_date = []
+    danceability = []
+    energy = []
+    key = []
+    loudness = []
+    mode = []
+    speechiness = []
+    acousticness = []
+    instrumentalness = []
+    liveness = []
+    valence = []
+    tempo = []
+    time_signature = []
+    artist_popularity = []     #lista koja ce predstavljati novu kolonu dataseta
+    popularity_class = []       #pomocna lista koja ce sluziti za oversampling: klasa 1 - popularnost(0-20), klasa 2 - popularnost(21-40)...
     shuffled_tracks = tracks.sample(frac=1)
-    merged = shuffled_tracks.head(20000)
+    zero_to_ten = 0
+    eleven_to_twenty = 0
+    twenty_one_to_thirty = 0
+    thirty_one_to_forty = 0
+    forty_one_to_fifty = 0
+    fifty_one_to_sixty = 0
+    sixty_one_to_seventy = 0
+    seventy_one_to_eighty = 0
+    merged = pd.DataFrame()
     counter = 0
-    for song in shuffled_tracks.values:
-        if counter >= 20000:
+    popular_counter = 0
+    popular_tracks = tracks.sort_values('popularity', ascending=False)
+    for song in popular_tracks.values:        #sve pesme sa popularnoscu preko 80
+        if popular_counter > 736:
             break
-        artists_popularity.append(find_most_popular_artist(song[6][1:len(song[6]) - 1]))
-        counter += 1
-        print(counter)
+        id.append(song[0])
+        name.append(song[1])
+        popularity.append(song[2])
+        duration_ms.append(song[3])
+        explicit.append(song[4])
+        artists.append(song[5])
+        id_artists.append(song[6])
+        release_date.append(song[7])
+        danceability.append(song[8])
+        energy.append(song[9])
+        key.append(song[10])
+        loudness.append(song[11])
+        mode.append(song[12])
+        speechiness.append(song[13])
+        acousticness.append(song[14])
+        instrumentalness.append(song[15])
+        liveness.append(song[16])
+        valence.append(song[17])
+        tempo.append(song[18])
+        time_signature.append(song[19])
+        artist_popularity.append(find_most_popular_artist(song[6][1:len(song[6]) - 1]))  # nalazenje popularnosti umetnika
+        popularity_class.append(5)
+        popular_counter += 1
+        print(popular_counter)
+    previous_counter = counter
+    for song in shuffled_tracks.values:
+        if counter >= 19200:
+            break
+        song_popularity = song[2]
+        if 0 <= song_popularity < 11 and zero_to_ten < 2400:
+            zero_to_ten += 1
+            popularity_class.append(1)
+            counter += 1
+        elif 11 <= song_popularity < 21 and eleven_to_twenty < 2400:
+            eleven_to_twenty += 1
+            popularity_class.append(1)
+            counter += 1
+        elif 21 <= song_popularity < 31 and twenty_one_to_thirty < 2400:
+            twenty_one_to_thirty += 1
+            popularity_class.append(2)
+            counter += 1
+        elif 31 <= song_popularity < 41 and thirty_one_to_forty < 2400:
+            thirty_one_to_forty += 1
+            popularity_class.append(2)
+            counter += 1
+        elif 41 <= song_popularity < 51 and forty_one_to_fifty < 2400:
+            forty_one_to_fifty += 1
+            popularity_class.append(3)
+            counter += 1
+        elif 51 <= song_popularity < 61 and fifty_one_to_sixty < 2400:
+            fifty_one_to_sixty += 1
+            popularity_class.append(3)
+            counter += 1
+        elif 61 <= song_popularity < 71 and sixty_one_to_seventy < 2400:
+            sixty_one_to_seventy += 1
+            popularity_class.append(4)
+            counter += 1
+        elif 71 <= song_popularity < 81 and seventy_one_to_eighty < 2400:
+            seventy_one_to_eighty += 1
+            popularity_class.append(4)
+            counter += 1
+        if previous_counter != counter:
+            id.append(song[0])
+            name.append(song[1])
+            popularity.append(song[2])
+            duration_ms.append(song[3])
+            explicit.append(song[4])
+            artists.append(song[5])
+            id_artists.append(song[6])
+            release_date.append(song[7])
+            danceability.append(song[8])
+            energy.append(song[9])
+            key.append(song[10])
+            loudness.append(song[11])
+            mode.append(song[12])
+            speechiness.append(song[13])
+            acousticness.append(song[14])
+            instrumentalness.append(song[15])
+            liveness.append(song[16])
+            valence.append(song[17])
+            tempo.append(song[18])
+            time_signature.append(song[19])
+            artist_popularity.append(find_most_popular_artist(song[6][1:len(song[6]) - 1]))        #nalazenje popularnosti umetnika
+            print(counter)
+            previous_counter = counter
+    merged.insert(0, "id", id, allow_duplicates=True)
+    merged.insert(1, "name", name, allow_duplicates=True)
+    merged.insert(2, "popularity", popularity, allow_duplicates=True)
+    merged.insert(3, "duration_ms", duration_ms, allow_duplicates=True)
+    merged.insert(4, "explicit", explicit, allow_duplicates=True)
+    merged.insert(5, "artists", artists, allow_duplicates=True)
+    merged.insert(6, "id_artists", id_artists, allow_duplicates=True)
+    merged.insert(7, "release_date", release_date, allow_duplicates=True)
+    merged.insert(8, "danceability", danceability, allow_duplicates=True)
+    merged.insert(9, "energy", energy, allow_duplicates=True)
+    merged.insert(10, "key", key, allow_duplicates=True)
+    merged.insert(11, "loudness", loudness, allow_duplicates=True)
+    merged.insert(12, "mode", mode, allow_duplicates=True)
+    merged.insert(13, "speechiness", speechiness, allow_duplicates=True)
+    merged.insert(14, "acousticness", acousticness, allow_duplicates=True)
+    merged.insert(15, "instrumentalness", instrumentalness, allow_duplicates=True)
+    merged.insert(16, "liveness", liveness, allow_duplicates=True)
+    merged.insert(17, "valence", valence, allow_duplicates=True)
+    merged.insert(18, "tempo", tempo, allow_duplicates=True)
+    merged.insert(19, "time_signature", time_signature, allow_duplicates=True)
+    merged.insert(20, "artist_popularity", artist_popularity, allow_duplicates=True)
+    merged.insert(21, "popularity_class", popularity_class, allow_duplicates=True)
     merged.release_date = merged.release_date.str[0:4]      #pretvaranje datuma objave pesme u godinu, zbog lakse obrade podataka
-    merged.insert(20, "artist_popularity", artists_popularity, allow_duplicates=True)
-    merged.to_csv('merged-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
+    merged.to_csv('final-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
+    merged_shuffled = merged.sample(frac=1)
+    merged_shuffled.to_csv('final-shuffled-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
     #print(artists_popularity)
     #print(merged.values)
 
@@ -82,8 +221,9 @@ def logistic_regression_prediction():
                 'tempo', 'time_signature', 'artist_popularity']
     X = df[features]
     print(X.head())
-
+    smote = SMOTE()
     train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+    #train_X, train_y = smote.fit_resample(train_X, train_y)
     lr_model = LogisticRegression(random_state=0)
     lr_model.fit(train_X, train_y)
     val_preds1 = lr_model.predict(test_X)
@@ -117,3 +257,24 @@ def show_info():
 
 def format_dataset():
     scaler = MinMaxScaler()
+
+def show_histograms():
+    merged = pd.read_csv('final-20000.csv')
+    #ros = RandomOverSampler()
+    #train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+    #train_X, train_y = ros.fit_resample(train_X, train_y)
+    merged.hist(bins=20, color='orange', figsize=(20, 14))
+    #train_X.hist(bins=20, color='orange', figsize=(20, 14))
+    plt.show()
+
+def count_very_popular():
+    df = pd.read_csv('tracks.csv')
+    features = ['release_date', 'popularity',
+                'danceability', 'energy']
+    X = df[features]
+    X = X[(X.popularity > 80)]          #736 pesama sa popularnoscu iznad 80
+    print(X)
+
+def test():
+    popular_tracks = tracks.sort_values('popularity', ascending=False)
+    print(popular_tracks)
