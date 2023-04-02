@@ -16,7 +16,6 @@ from collections import Counter
 
 tracks = pd.read_csv('tracks.csv')
 artists = pd.read_csv('artists.csv')
-combined = pd.read_csv('merged-20000.csv')
 final_tracks = pd.read_csv('final-shuffled-20000.csv')
 
 def find_most_popular_artist(artist_ids):
@@ -109,38 +108,38 @@ def merge_tracks_and_artists():
         print(popular_counter)
     previous_counter = counter
     for song in shuffled_tracks.values:
-        if counter >= 5888:
+        if counter >= 2944:
             break
         song_popularity = song[3]
-        if 0 <= song_popularity < 11 and zero_to_ten < 736:
+        if 0 <= song_popularity < 11 and zero_to_ten < 368:
             zero_to_ten += 1
             popularity_class.append(1)
             counter += 1
-        elif 11 <= song_popularity < 21 and eleven_to_twenty < 736:
+        elif 11 <= song_popularity < 21 and eleven_to_twenty < 368:
             eleven_to_twenty += 1
             popularity_class.append(1)
             counter += 1
-        elif 21 <= song_popularity < 31 and twenty_one_to_thirty < 736:
+        elif 21 <= song_popularity < 31 and twenty_one_to_thirty < 368:
             twenty_one_to_thirty += 1
             popularity_class.append(2)
             counter += 1
-        elif 31 <= song_popularity < 41 and thirty_one_to_forty < 736:
+        elif 31 <= song_popularity < 41 and thirty_one_to_forty < 368:
             thirty_one_to_forty += 1
             popularity_class.append(2)
             counter += 1
-        elif 41 <= song_popularity < 51 and forty_one_to_fifty < 736:
+        elif 41 <= song_popularity < 51 and forty_one_to_fifty < 368:
             forty_one_to_fifty += 1
             popularity_class.append(3)
             counter += 1
-        elif 51 <= song_popularity < 61 and fifty_one_to_sixty < 736:
+        elif 51 <= song_popularity < 61 and fifty_one_to_sixty < 368:
             fifty_one_to_sixty += 1
             popularity_class.append(3)
             counter += 1
-        elif 61 <= song_popularity < 71 and sixty_one_to_seventy < 736:
+        elif 61 <= song_popularity < 71 and sixty_one_to_seventy < 368:
             sixty_one_to_seventy += 1
             popularity_class.append(4)
             counter += 1
-        elif 71 <= song_popularity < 81 and seventy_one_to_eighty < 736:
+        elif 71 <= song_popularity < 81 and seventy_one_to_eighty < 368:
             seventy_one_to_eighty += 1
             popularity_class.append(4)
             counter += 1
@@ -194,14 +193,13 @@ def merge_tracks_and_artists():
     print(merged.release_date)
     merged.release_date = merged.release_date.str[0:4]      #pretvaranje datuma objave pesme u godinu, zbog lakse obrade podataka
     print(merged.release_date)
-    merged.to_csv('undersampled-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
-    merged_shuffled = merged.sample(frac=1)
-    merged_shuffled.to_csv('undersampled-shuffled-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
+    merged_shuffled = merged.sample(frac=1)     #shuffle
+    merged_shuffled.to_csv('undersampled-even-shuffled-20000.csv')     #export dataseta pesama zajedno sa popularnosti izvodjaca u .csv fajl
     #print(artists_popularity)
     #print(merged.values)
 
 def show_importances():
-    df = pd.read_csv('merged-20000.csv')
+    df = pd.read_csv('final-shuffled-20000.csv')
     y = df.popularity
     features = ['duration_ms', 'explicit', 'release_date',
                 'danceability', 'energy', 'key', 'loudness', 'mode',
@@ -211,14 +209,18 @@ def show_importances():
     print(X.head())
 
     train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+    # model.fit(X, y)
+    # importance = model.coef_
+    # summarize feature importance
+    # for i, v in enumerate(importance):
+    #    print('Feature: %0d, Score: %.5f' % (i, v))
+    # plot feature importance
+    # plt.bar([x for x in range(len(importance))], importance)
+    # plt.show()
 
-    rfr_model = RandomForestRegressor()
-    feature_importances = FeatureImportances(rfr_model)
-    feature_importances.fit(train_X, train_y)
-    feature_importances.show()
 
 def linear_regression_prediction():
-    df = pd.read_csv('undersampled-shuffled-20000.csv')
+    df = pd.read_csv('final-shuffled-20000.csv')
     y = df.popularity
     features = ['duration_ms', 'explicit', 'release_date',
                 'danceability', 'energy', 'key', 'loudness', 'mode',
@@ -236,7 +238,7 @@ def linear_regression_prediction():
     X['artist_popularity'] = (X['artist_popularity'] - X['artist_popularity'].min())/(X['artist_popularity'].max() - X['artist_popularity'].min())
     print(X)
     print(X.info())
-    train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+    train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
     lr_model = LinearRegression()
     lr_model.fit(train_X, train_y)
     val_preds1 = lr_model.predict(test_X)
@@ -246,9 +248,12 @@ def linear_regression_prediction():
     print(f' Root mean squared error of this model: {math.sqrt(mse_error):.3f}')
     print(f' Mean absolute error of this model: {mae_error:.3f}')
     print(f' R2 score of this model: {r2 * 100:.3f} %')
+    feature_importances = FeatureImportances(lr_model)
+    feature_importances.fit(train_X, train_y)
+    feature_importances.show()
 
 def random_forest_prediction():
-    df = pd.read_csv('undersampled-shuffled-20000.csv')
+    df = pd.read_csv('undersampled-even-shuffled-20000.csv')
     print(df.info())
     y = df.popularity
     features = ['duration_ms', 'explicit', 'release_date',
@@ -256,7 +261,7 @@ def random_forest_prediction():
                 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence',
                 'tempo', 'time_signature', 'artist_popularity']
     X = df[features]
-    train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+    train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
     rf_model = RandomForestRegressor(random_state=0)
     rf_model.fit(train_X, train_y)
     val_preds1 = rf_model.predict(test_X)
@@ -266,22 +271,23 @@ def random_forest_prediction():
     print(f' Root mean squared error of this model: {math.sqrt(mse_error):.3f}')
     print(f' Mean absolute error of this model: {mae_error:.3f}')
     print(f' R2 score of this model: {r2*100:.3f} %')
+    feature_importances = FeatureImportances(rf_model)
+    feature_importances.fit(train_X, train_y)
+    feature_importances.show()
 
 
 def show_info():
-    merged = pd.read_csv('merged-20000.csv')
-    merged.describe().transpose().to_csv('statistics-merged-20000.csv')
+    #merged = pd.read_csv('tracks.csv')
+    #merged.describe().transpose().to_csv('statistics-tracks.csv')
+    tracks.release_date = tracks.release_date.str[0:4]
+    tracks.release_date = tracks.release_date.astype(int)
+    sns.heatmap(tracks.corr(), cmap='icefire');
 
-def format_dataset():
-    scaler = MinMaxScaler()
+    plt.show()
 
 def show_histograms():
-    merged = pd.read_csv('final-20000.csv')
-    #ros = RandomOverSampler()
-    #train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
-    #train_X, train_y = ros.fit_resample(train_X, train_y)
+    merged = pd.read_csv('undersampled-even-shuffled-20000.csv')
     merged.hist(bins=20, color='orange', figsize=(20, 14))
-    #train_X.hist(bins=20, color='orange', figsize=(20, 14))
     plt.show()
 
 def count_very_popular():

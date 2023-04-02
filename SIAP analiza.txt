@@ -1,0 +1,142 @@
+Linearna regresija
+
+final-shuffled-20000
+
+random_state = 0
+ 
+ Root mean squared error of this model: 14.865
+ Mean absolute error of this model: 11.555
+ R2 score of this model: 61.804 %
+
+random_state = 42
+
+ Root mean squared error of this model: 14.061
+ Mean absolute error of this model: 11.004
+ R2 score of this model: 66.682 %
+
+random_state = 1
+
+ Root mean squared error of this model: 14.244
+ Mean absolute error of this model: 11.135
+ R2 score of this model: 65.390 %
+
+Artist popularity and release date ONLY
+
+ Root mean squared error of this model: 15.213
+ Mean absolute error of this model: 11.857
+ R2 score of this model: 59.994 %
+
+No popularity and release date
+
+ Root mean squared error of this model: 20.442
+ Mean absolute error of this model: 16.850
+ R2 score of this model: 27.766 %
+
+
+
+
+undersampled-even-shuffled-20000
+
+ Root mean squared error of this model: 14.228
+ Mean absolute error of this model: 10.819
+ R2 score of this model: 73.104 %
+
+No popularity and release date
+
+ Root mean squared error of this model: 22.001
+ Mean absolute error of this model: 17.796
+ R2 score of this model: 35.686 %
+
+
+
+
+undersampled-shuffled-20000
+
+ Root mean squared error of this model: 14.235
+ Mean absolute error of this model: 11.093
+ R2 score of this model: 69.406 %
+
+No popularity and release date
+
+ Root mean squared error of this model: 21.725
+ Mean absolute error of this model: 17.663
+ R2 score of this model: 28.748 %
+
+
+
+
+Random Forest
+
+
+
+final-shuffled-20000
+
+ Root mean squared error of this model: 13.435
+ Mean absolute error of this model: 10.151
+ R2 score of this model: 68.801 %
+
+random_state = 42
+
+ Root mean squared error of this model: 12.973
+ Mean absolute error of this model: 9.764
+ R2 score of this model: 71.636 %
+
+random_state = 1
+
+ Root mean squared error of this model: 12.921
+ Mean absolute error of this model: 9.774
+ R2 score of this model: 71.522 %
+
+PROSEK GORNJA 3
+
+ Root mean squared error of this model: 13.109
+ Mean absolute error of this model: 9.896
+ R2 score of this model: 70.669 %
+
+No mode, explicit, key and time signature - slightly better results
+
+ Root mean squared error of this model: 13.425
+ Mean absolute error of this model: 10.143
+ R2 score of this model: 68.844 %	
+
+No popularity and release date
+
+ Root mean squared error of this model: 18.997
+ Mean absolute error of this model: 15.372
+ R2 score of this model: 37.614 %
+
+Artist popularity and release date ONLY
+
+ Root mean squared error of this model: 15.041
+ Mean absolute error of this model: 11.145
+ R2 score of this model: 60.894 %
+
+
+
+
+undersampled-shuffled-20000
+
+ Root mean squared error of this model: 13.149
+ Mean absolute error of this model: 9.974
+ R2 score of this model: 73.898 %
+
+No popularity and release date
+
+ Root mean squared error of this model: 19.938
+ Mean absolute error of this model: 16.203
+ R2 score of this model: 39.984 %
+
+
+
+
+undersampled-even-shuffled-20000
+
+ Root mean squared error of this model: 13.592
+ Mean absolute error of this model: 9.617
+ R2 score of this model: 75.454 %
+
+No popularity and release date
+
+ Root mean squared error of this model: 20.554
+ Mean absolute error of this model: 16.361
+ R2 score of this model: 43.868 %
