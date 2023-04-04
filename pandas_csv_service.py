@@ -338,14 +338,18 @@ def neural_network():
     #train_y = onehot_encoder.fit_transform(train_y.reshape(len(train_y), 1))
     print(train_y.shape)
     model = Sequential()
-    model.add(Dense(16, input_dim=train_X.shape[1], activation='sigmoid'))
-    model.add(Dense(8, activation='sigmoid'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(train_X.shape[1], input_dim=train_X.shape[1], activation='relu'))
+    model.add(Dense(8, activation='relu'))
+    model.add(Dense(1))
 
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['accuracy'])
 
-    model.fit(train_X, train_y, epochs=100, batch_size=32)
+    model.fit(train_X, train_y, epochs=1000, batch_size=32, validation_data=(test_X, test_y))
 
     ynew = model.predict(test_X)
+
+    score = model.evaluate(test_X, test_y, verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
     for i in range(len(test_X)):
         print(test_y[i], ynew[i])
