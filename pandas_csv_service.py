@@ -4,7 +4,13 @@ from sklearn.ensemble import RandomForestRegressor # Random Forest Model
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+import tensorflow.compat.v2 as tf
+
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense
 import math
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -301,3 +307,22 @@ def count_very_popular():
 def test():
     popular_tracks = tracks.sort_values('popularity', ascending=False)
     print(popular_tracks)
+
+def neural_network():
+    df = pd.read_csv('undersampled-even-shuffled-20000.csv')
+
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1].values
+
+    label_encoder_y = LabelEncoder()
+    y = label_encoder_y.fit_transform(y)
+    onehot_encoder = OneHotEncoder(sparse=False)
+    y = onehot_encoder.fit_transform(y.reshape(len(y), 1))
+
+    model = Sequential()
+    model.add(Dense(8, input_dim=X.shape[1], activation='relu'))
+    model.add(Dense(y.shape[1], activation='softmax'))
+
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    model.fit(X, y, epochs=100, batch_size=32)
