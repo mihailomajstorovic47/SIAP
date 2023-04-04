@@ -4,7 +4,6 @@ from sklearn.ensemble import RandomForestRegressor # Random Forest Model
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
-import tensorflow.compat.v2 as tf
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -311,18 +310,42 @@ def test():
 def neural_network():
     df = pd.read_csv('undersampled-even-shuffled-20000.csv')
 
-    X = df.iloc[:, :-1].values
-    y = df.iloc[:, -1].values
+    y = df.popularity
+    features = ['duration_ms', 'explicit', 'release_date',
+                'danceability', 'energy', 'key', 'loudness', 'mode',
+                'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence',
+                'tempo', 'time_signature', 'artist_popularity']
+    X = df[features]
+    X['duration_ms'] = (X['duration_ms'] - X['duration_ms'].min()) / (X['duration_ms'].max() - X['duration_ms'].min())
+    X['release_date'] = (X['release_date'] - X['release_date'].min()) / (
+                X['release_date'].max() - X['release_date'].min())
+    X['key'] = (X['key'] - X['key'].min()) / (X['key'].max() - X['key'].min())
+    X['tempo'] = (X['tempo'] - X['tempo'].min()) / (X['tempo'].max() - X['tempo'].min())
+    X['time_signature'] = (X['time_signature'] - X['time_signature'].min()) / (
+                X['time_signature'].max() - X['time_signature'].min())
+    X['speechiness'] = (X['speechiness'] - X['speechiness'].min()) / (X['speechiness'].max() - X['speechiness'].min())
+    X['loudness'] = X['loudness'] + X['loudness'].min()
+    X['loudness'] = (X['loudness'] - X['loudness'].min()) / (X['loudness'].max() - X['loudness'].min())
+    X['artist_popularity'] = (X['artist_popularity'] - X['artist_popularity'].min()) / (
+                X['artist_popularity'].max() - X['artist_popularity'].min())
+
+    train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
 
     label_encoder_y = LabelEncoder()
-    y = label_encoder_y.fit_transform(y)
-    onehot_encoder = OneHotEncoder(sparse=False)
-    y = onehot_encoder.fit_transform(y.reshape(len(y), 1))
-
+    train_y = label_encoder_y.fit_transform(train_y)
+    test_y = label_encoder_y.fit_transform(test_y)
+    #onehot_encoder = OneHotEncoder(sparse=False)
+    #train_y = onehot_encoder.fit_transform(train_y.reshape(len(train_y), 1))
+    print(train_y.shape)
     model = Sequential()
-    model.add(Dense(8, input_dim=X.shape[1], activation='relu'))
-    model.add(Dense(y.shape[1], activation='softmax'))
+    model.add(Dense(16, input_dim=train_X.shape[1], activation='sigmoid'))
+    model.add(Dense(8, activation='sigmoid'))
+    model.add(Dense(1, activation='sigmoid'))
 
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    model.fit(X, y, epochs=100, batch_size=32)
+    model.fit(train_X, train_y, epochs=100, batch_size=32)
+
+    ynew = model.predict(test_X)
+    for i in range(len(test_X)):
+        print(test_y[i], ynew[i])
