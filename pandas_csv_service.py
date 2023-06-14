@@ -247,6 +247,7 @@ def linear_regression_prediction():
     lr_model = LinearRegression()
     lr_model.fit(train_X, train_y)
     val_preds1 = lr_model.predict(test_X)
+    print(lr_model.coef_)
     mse_error = mean_squared_error(test_y, val_preds1)
     mae_error = mean_absolute_error(test_y, val_preds1)
     r2 = r2_score(test_y, val_preds1)
@@ -282,11 +283,12 @@ def random_forest_prediction():
 
 
 def show_info():
-    #merged = pd.read_csv('tracks.csv')
+    merged = pd.read_csv('final-shuffled-20000.csv')
     #merged.describe().transpose().to_csv('statistics-tracks.csv')
-    tracks.release_date = tracks.release_date.str[0:4]
-    tracks.release_date = tracks.release_date.astype(int)
-    sns.heatmap(tracks.corr(), cmap='icefire');
+    #tracks.release_date = merged.release_date.str[0:4]
+    #tracks.release_date = merged.release_date.astype(int)
+    merged.drop(columns = ['popularity_class'])
+    sns.heatmap(merged.corr(), cmap='icefire');
 
     plt.show()
 
@@ -304,52 +306,81 @@ def count_very_popular():
     print(X)
 
 def test():
-    popular_tracks = tracks.sort_values('popularity', ascending=False)
-    print(popular_tracks)
+    popular_tracks = final_tracks.sort_values('popularity', ascending=False)
+    print(popular_tracks.head(50))
 
 def neural_network():
-    df = pd.read_csv('undersampled-even-shuffled-20000.csv')
+    df = pd.read_csv('final-shuffled-20000.csv')
 
-    y = df.popularity
-    features = ['duration_ms', 'explicit', 'release_date',
-                'danceability', 'energy', 'key', 'loudness', 'mode',
-                'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence',
-                'tempo', 'time_signature', 'artist_popularity']
+    #y = df.popularity
+    y = (df['popularity'] - df['popularity'].min()) / (df['popularity'].max() - df['popularity'].min())
+    features = ['release_date', 'artist_popularity']
     X = df[features]
-    X['duration_ms'] = (X['duration_ms'] - X['duration_ms'].min()) / (X['duration_ms'].max() - X['duration_ms'].min())
+    #X['duration_ms'] = (X['duration_ms'] - X['duration_ms'].min()) / (X['duration_ms'].max() - X['duration_ms'].min())
     X['release_date'] = (X['release_date'] - X['release_date'].min()) / (
-                X['release_date'].max() - X['release_date'].min())
-    X['key'] = (X['key'] - X['key'].min()) / (X['key'].max() - X['key'].min())
-    X['tempo'] = (X['tempo'] - X['tempo'].min()) / (X['tempo'].max() - X['tempo'].min())
-    X['time_signature'] = (X['time_signature'] - X['time_signature'].min()) / (
-                X['time_signature'].max() - X['time_signature'].min())
-    X['speechiness'] = (X['speechiness'] - X['speechiness'].min()) / (X['speechiness'].max() - X['speechiness'].min())
-    X['loudness'] = X['loudness'] + X['loudness'].min()
-    X['loudness'] = (X['loudness'] - X['loudness'].min()) / (X['loudness'].max() - X['loudness'].min())
+               X['release_date'].max() - X['release_date'].min())
+    #X['key'] = (X['key'] - X['key'].min()) / (X['key'].max() - X['key'].min())
+    #X['tempo'] = (X['tempo'] - X['tempo'].min()) / (X['tempo'].max() - X['tempo'].min())
+    #X['time_signature'] = (X['time_signature'] - X['time_signature'].min()) / (
+    #            X['time_signature'].max() - X['time_signature'].min())
+    #X['speechiness'] = (X['speechiness'] - X['speechiness'].min()) / (X['speechiness'].max() - X['speechiness'].min())
+    #X['loudness'] = X['loudness'] + X['loudness'].min()
+    #X['loudness'] = (X['loudness'] - X['loudness'].min()) / (X['loudness'].max() - X['loudness'].min())
     X['artist_popularity'] = (X['artist_popularity'] - X['artist_popularity'].min()) / (
-                X['artist_popularity'].max() - X['artist_popularity'].min())
-
+              X['artist_popularity'].max() - X['artist_popularity'].min())
     train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
-
     label_encoder_y = LabelEncoder()
+    print(train_y)
+    print(test_y)
+    #print(test_X['artist_popularity'])
+    #print(test_X['release_date'])
     train_y = label_encoder_y.fit_transform(train_y)
     test_y = label_encoder_y.fit_transform(test_y)
+    #test_x_artist = label_encoder_y.fit_transform(test_X['artist_popularity'])
+    #test_x_releasedate = label_encoder_y.fit_transform(test_X['release_date'])
+    print(train_y)
+    print(test_y)
+    #print(test_x_artist)
+    #print(test_x_releasedate)
     #onehot_encoder = OneHotEncoder(sparse=False)
     #train_y = onehot_encoder.fit_transform(train_y.reshape(len(train_y), 1))
     print(train_y.shape)
     model = Sequential()
-    model.add(Dense(train_X.shape[1], input_dim=train_X.shape[1], activation='relu'))
-    model.add(Dense(8, activation='relu'))
+    model.add(Dense(train_X.shape[1], input_dim=train_X.shape[1], activation='sigmoid'))
+    model.add(Dense(8, activation='sigmoid'))
     model.add(Dense(1))
 
-    model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
-    model.fit(train_X, train_y, epochs=1000, batch_size=32, validation_data=(test_X, test_y))
+    model.fit(train_X, train_y, epochs=100, batch_size=32, validation_data=(test_X, test_y))
 
     ynew = model.predict(test_X)
 
     score = model.evaluate(test_X, test_y, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+    subjective_precision_under_10 = 0
+    subjective_precision_under_5 = 0
+    subjective_precision_under_15 = 0
+    subjective_precision_under_20 = 0
+    subjective_precision_over_30 = 0
     for i in range(len(test_X)):
         print(test_y[i], ynew[i])
+        if abs(test_y[i] - ynew[i]) <= 10:
+            subjective_precision_under_10 += 1
+        if abs(test_y[i] - ynew[i]) <= 5:
+            subjective_precision_under_5 += 1
+        if abs(test_y[i] - ynew[i]) <= 15:
+            subjective_precision_under_15 += 1
+        if abs(test_y[i] - ynew[i]) <= 20:
+            subjective_precision_under_20 += 1
+        if abs(test_y[i] - ynew[i]) >= 30:
+            subjective_precision_over_30 += 1
+            print('Found it')
+            #print(test_x_artist[i])
+            #print(test_x_releasedate[i])
+    print('Subjective accuracy - under 5:', subjective_precision_under_5/len(test_X)*100)
+    print('Subjective accuracy - under 10:', subjective_precision_under_10/len(test_X)*100)
+    print('Subjective accuracy - under 15:', subjective_precision_under_15/len(test_X)*100)
+    print('Subjective accuracy - under 20:', subjective_precision_under_20/len(test_X)*100)
+    print('Subjective accuracy - over 30:', subjective_precision_over_30/len(test_X)*100)
